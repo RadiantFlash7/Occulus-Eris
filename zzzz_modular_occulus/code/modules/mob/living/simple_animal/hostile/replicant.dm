@@ -42,7 +42,6 @@
 	response_help = "pokes"
 	response_disarm = "shoves"
 	response_harm = "strikes"
-	status_flags = 0
 	a_intent = I_HURT
 	var/throw_message = "bounces off of"
 	var/icon_aggro = null // for swapping to when we get aggressive
@@ -75,31 +74,63 @@
 	attacktext = "lashes out at"
 	throw_message = "falls right through the strange body of the"
 	environment_smash = 0
-	retreat_distance = 3
-	minimum_distance = 3
-	pass_flags = PASSTABLE
+	retreat_distance = 4
+	minimum_distance = 4
 	var/sounddelay = 0
+	var/emp_range = 5
+	var/distress_level = 0
+
+/mob/living/simple_animal/hostile/nanite/replicant/New()
+	..()
+	set_light(2, 2, "#007fff")
 
 /mob/living/simple_animal/hostile/nanite/replicant/OpenFire(var/the_target)
 	var/mob/living/simple_animal/hostile/nanite/replicanttendril/A = new /mob/living/simple_animal/hostile/nanite/replicanttendril(src.loc)
 	A.GiveTarget(target)
 	A.friends = friends
 	A.faction = faction
-	return
+	soundloop()
 
 /mob/living/simple_animal/hostile/nanite/replicant/proc/soundloop()
 	if( sounddelay == 0)
-		playsound(src.loc, 'sound/voice/replicanthum.ogg', 100, 1, 8, 8)
+		playsound(src.loc, 'zzzz_modular_occulus/sound/voice/replicanthum.ogg', 100, 1, 8, 8)
+		sounddelay = 60
 		return
 	else
-		sounddelay = sounddelay -1
+		sounddelay = (sounddelay -1)
 		return
-/mob/living/simple_animal/hostile/nanite/replicant/AttackingTarget()
-	OpenFire()
-	set_light(l_range = 4.5, l_power = 2.5, l_color = COLOR_YELLOW)
-	soundloop()
 
+/////////////////Defensive EMP burst starts here///////////////////////
+/mob/living/simple_animal/hostile/nanite/replicant/bullet_act()
+	.=..()
+	defensive_burst()
 
+/mob/living/simple_animal/hostile/nanite/replicant/attackby()
+	.=..()
+	defensive_burst()
+/mob/living/simple_animal/hostile/nanite/replicant/proc/defensive_burst()
+
+	distress_level += 1
+
+	/*
+	In order to make it more likely that players will be around to witness it, lets add more distress if we can
+	see a human player
+
+	*/
+	for (var/mob/living/carbon/human/H in view())
+		if (H.stat != DEAD && H.client)
+			distress_level += 2
+			break
+
+	if (distress_level > 0 && prob(distress_level))
+
+		distress_level = -30 //Once a call is successfully triggered, set the chance negative
+		//So it will be a while before this guy can send another call
+
+		playsound(src.loc, 'zzzz_modular_occulus/sound/voice/roboticactivation.ogg', 100, 1, 8, 8)
+		visible_message(SPAN_DANGER("[src] emits a electromagnetic pulse, frying nearby electronics!"))
+		empulse(get_turf(src), emp_range, emp_range, TRUE)
+/////////////////Defensive EMP burst ENDS here///////////////////////
 
 /mob/living/simple_animal/hostile/nanite/replicant/Die()
 	new /obj/item/replicant_core(src.loc)
@@ -133,37 +164,36 @@
 				user << "<span class='notice'>You chomp into [src], barely managing to hold it down, but feel amazingly refreshed in mere moments.</span>"
 			playsound(src.loc,'sound/items/eatfood.ogg', rand(10,50), 1)
 			H.revive()
-			del(src)
+			qdel(src)
 	..()
 
 /mob/living/simple_animal/hostile/nanite/replicanttendril
 	name = "replicant tendril"
-	desc = "A thin cord-like tendril made of bio-synthetic mesh, broken off from a larger creature. There are stories of these cords pulling crew to never be seen again..."
+	desc = "A thin cord-like tendril made of bio-synthetic mesh, broken off from a larger creature. There are stories of these cords pulling crew into the darkness to never be seen again..."
 	icon = 'zzzz_modular_occulus/icons/mob/replicant.dmi'
 	icon_state = "Replicanttendril"
 	icon_living = "Replicanttendril"
 	icon_aggro = "Replicanttendril"
-	icon_dead = "Replicanttendril"
-	icon_gib = "syndicate_gib"
+	icon_dead = "Replicanttendrildead"
 	mouse_opacity = 2
 	move_to_delay = 0
 	friendly = "buzzes near"
 	vision_range = 10
-	speed = 3
-	maxHealth = 60
-	health = 1
-	harm_intent_damage = 5
-	melee_damage_lower = 2
-	melee_damage_upper = 2
-	attacktext = "slashes"
+	speed = 2
+	maxHealth = 35
+	health = 35
+	melee_damage_lower = 3
+	melee_damage_upper = 7
+	attacktext = "slices"
 	throw_message = "falls right through the strange body of the"
 	environment_smash = 0
-	pass_flags = PASSTABLE
 
 /mob/living/simple_animal/hostile/nanite/replicanttendril/New()
 	..()
 	spawn(180)
-		del(src)
+		qdel(src)
 
 /mob/living/simple_animal/hostile/nanite/replicanttendril/Die()
-	del(src)
+	visible_message(SPAN_NOTICE("[src] melts away into a pile of ash!"))
+	qdel(src)
+	new /obj/effect/decal/cleanable/ash
