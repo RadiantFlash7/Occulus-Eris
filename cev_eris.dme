@@ -2946,6 +2946,7 @@
 #include "zzzz_modular_occulus\code\modules\mob\living\silicon\robot\inventory.dm"
 #include "zzzz_modular_occulus\code\modules\mob\living\simple_animal\defense.dm"
 #include "zzzz_modular_occulus\code\modules\mob\living\simple_animal\hostile\nanoblob.dm"
+#include "zzzz_modular_occulus\code\modules\mob\living\simple_animal\hostile\replicant.dm"
 #include "zzzz_modular_occulus\code\modules\organs\organ.dm"
 #include "zzzz_modular_occulus\code\modules\organs\external\subtypes\robotic _types.dm"
 #include "zzzz_modular_occulus\code\modules\organs\external\subtypes\robotic.dm"
