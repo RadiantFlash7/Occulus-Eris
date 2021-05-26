@@ -9,7 +9,6 @@
 	if(target != null)
 		Aggro()
 		stance = HOSTILE_STANCE_ATTACK
-		log_debug("target assigned to replicant")
 	return
 
 /mob/living/simple_animal/hostile/siren/MoveToTarget()		//Custom pathing! attemptto maintain distance if ranged,
@@ -19,19 +18,14 @@
 	if(target_mob in ListTargets(10))
 		var/target_distance = get_dist(src,target_mob)
 		if(ranged)//We ranged? Shoot at em
-			log_debug("ranged!")
 			if(target_distance >= 1)//But make sure they're a tile away at least, and our range attack is off cooldown
 				OpenFire()
-				log_debug("openfired")
 		if(isturf(loc) && target_mob.Adjacent(src))	//If they're next to us, attack
 			AttackingTarget()
-			log_debug("attacking target")
 		if(retreat_distance != null && target_distance <= retreat_distance) //If we have a retreat distance, check if we need to run from our target
 			walk_away(src,target_mob,retreat_distance,move_to_delay)
-			log_debug("Retreated from target")
 		else
 			Goto(target_mob,move_to_delay,minimum_distance)//Otherwise, get to our minimum distance so we chase them
-			log_debug("closing to minimum distance")
 		return
 	if(target_mob.loc != null && get_dist(src, target_mob.loc) <= vision_range)//We can't see our target, but he's in our vision range still
 		if(FindHidden(target_mob) && environment_smash)//Check if he tried to hide in something to lose us
@@ -39,14 +33,10 @@
 			Goto(A,move_to_delay,minimum_distance)
 			if(A.Adjacent(src))
 				A.attack_generic(src)
-			log_debug("attack hidden")
 			return
 		else
 			LostTarget()
-			log_debug("targetlost2")
 	LostTarget()
-	log_debug("Target lost 3")
-
 /mob/living/simple_animal/hostile/siren/proc/FindHidden(var/atom/hidden_target)	//THERE IS NO ESCAPE
 	if(istype(target.loc, /obj/structure/closet) || istype(target.loc, /obj/machinery/disposal) || istype(target.loc, /obj/machinery/sleeper))
 		return 1
